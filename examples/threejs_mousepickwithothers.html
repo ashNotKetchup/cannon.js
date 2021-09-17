@@ -31,7 +31,7 @@
         var jointBody, constrainedBody, mouseConstraint;
 
         //number of cubes 
-        var N = 100;
+        var N = 10;
 
         var container, camera, scene, renderer, projector;
 
@@ -43,7 +43,7 @@
 
         initCannon();       //physics first
         init();             //then scene
-        mouseGrabsStuff();   //mouse controls
+        //mouseGrabsStuff();   //mouse controls
         animate();          //then anim
         
         // Create N boxes
@@ -153,11 +153,11 @@
 
             window.addEventListener( 'resize', onWindowResize, false );
 
-            window.addEventListener("mousemove", mouseGrabsStuff.onMouseMove, false );
-            window.addEventListener("mousedown", mouseGrabsStuff.onMouseDown, false );
-            window.addEventListener("mouseup", mouseGrabsStuff.onMouseUp, false );
+            window.addEventListener("mousemove", onMouseMove, false );
+            window.addEventListener("mousedown", onMouseDown, false );
+            window.addEventListener("mouseup", onMouseUp, false );
         }
-        function mouseGrabsStuff(){
+        //function mouseGrabsStuff(){
             function setClickMarker(x,y,z) {
                 if(!clickMarker){
                     var shape = new THREE.SphereGeometry(0.2, 8, 8);
@@ -303,8 +303,12 @@
             mouseConstraint = false;
             }
 
+            mouseGrabsStuff.onMouseMove = onMouseMove;
+            mouseGrabsStuff.onMouseDown = onMouseDown;
+            mouseGrabsStuff.onMouseUp = onMouseUp;
+       // }
 
-        }
+
         
         function initCannon(){
             // Setup our world
