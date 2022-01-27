@@ -17,23 +17,28 @@
         <script src="../libs/Three.js"></script>
         <script src="../libs/Detector.js"></script>
         <script src="../build/cannon.js"></script>
-
+        <script type="text/javascript" src="../libs/dat.gui.js"></script>
+        <!-- <script src="../libs/jsm/controls/OrbitControls.js"></script>  -->
+        <!-- <script type="module">
+            import { OrbitControls } from "../../libs/jsm/controls/OrbitControls.js";
+          </script> -->
         <script>
+    
+        
         //globals
         var world;
         var dt = 1 / 60; //rate of change is 60hz (fps)
         var constraintDown = false;
-        var camera, scene, renderer, gplane=false, clickMarker=false;
+        var camera, scene, renderer, gplane=false, clickMarker=false, container, projector;
         var geometry, material, mesh;
         var controls,time = Date.now();
+        var zoom = 25;
 
         //constraints for mouse clicking
         var jointBody, constrainedBody, mouseConstraint;
 
         //number of cubes 
-        var N = 10;
-
-        var container, camera, scene, renderer, projector;
+        var N = 40;
 
         // In order to sync meshes from three.js with bodies from canon.js
         var meshes=[], bodies=[];
@@ -54,6 +59,15 @@
             { 
             addBox(1.5, [(Math.random()*2),(Math.random()*10),(Math.random()*2)], (Math.random() * 0xffffff), (Math.random()*2));
         }
+
+        // Create attractor
+
+        function makeAttractor(index){
+            addBox(4, [0,0,0], 0xffffff, 3);
+            //add some use of id....
+            //and add flag saying if its an attractor or a reppeller
+        }
+        makeAttractor();
         //Three.js scene
         function init() {
 
@@ -68,7 +82,7 @@
 
     
             // add directional light for the shadows
-            var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+            var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
             directionalLight.position.set(40, -600, -600);
             directionalLight.castShadow = false;
             directionalLight.target = scene;
@@ -76,23 +90,41 @@
 
             // camera
             
-            camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.5, 10000 );
+            //camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 0.5, 10000 );
             //sort orthographic position/zoom, then switch to that!
 
             //load time is awful, need to refactor and use diff threads??
             
             // create an orthographic camera, which defines where we're looking at.
-            //camera = new THREE.OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / -2, window.innerHeight / 2,  0.01, 1000);
-            camera.position.set(10, 2, 0);
-            camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.PI/2);
+            camera = new THREE.OrthographicCamera(window.innerWidth / - zoom, window.innerWidth / zoom, window.innerHeight / -zoom, window.innerHeight / zoom,  -10000, 100000);
+            camera.position.set(0, 0 , 0);
+            camera.lookAt(scene.position);
+            
+            camera.updateProjectionMatrix();
+            camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI);
             scene.add(camera);
+
+            //orbit controls
+            // var orbitControls = new THREE.OrbitControls(camera);
+            // orbitControls.autoRotate = true;
+            // var clock = new THREE.Clock();
+
+            //create orbit in gui
+            var camControls = new function() {
+                this.camRotation = 0;
+                this.camZoom = 25;
+            }
+            var gui = new dat.GUI();
+            gui.add(camControls, 'camRotation',0,360);
+            gui.add(camControls, 'camZoom',0,40);
+            camera.position.set(100*Math.sin(camControls.camRotation),0,100*Math.cos(camControls.camRotation));
 
             // lights
             var light, materials;
             scene.add( new THREE.AmbientLight( 0x666666 ) );
 
             light = new THREE.DirectionalLight( 0xffffff, 1.75 );
-            var d = 20;
+            var d = 30;
 
             light.position.set( d, d, d );
 
@@ -157,6 +189,8 @@
             window.addEventListener("mousedown", onMouseDown, false );
             window.addEventListener("mouseup", onMouseUp, false );
         }
+
+        //find way to pack the mouse events properly, and to allow multiple instances to be created with different target cubes and controls
         //function mouseGrabsStuff(){
             function setClickMarker(x,y,z) {
                 if(!clickMarker){
@@ -375,8 +409,13 @@
         }
 
         function render() {
+            //update camera controls
+            //var delta = clock.getDelta();
+            //orbitControls.update(delta);
             renderer.render(scene, camera);
         }
+
+        
 
         </script>
     </body>
